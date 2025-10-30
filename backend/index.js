@@ -24,8 +24,13 @@ app.use(bodyParser.json());
 
 // --- Passport.js Configuration ---
 app.use(passport.initialize());
-// Use the 'createStrategy' helper from passport-local-mongoose
-passport.use(new LocalStrategy(UserModel.authenticate()));
+
+// --- THIS IS THE FIX ---
+// Tell LocalStrategy to use 'email' as the username field
+const strategyOptions = { usernameField: 'email' };
+passport.use(new LocalStrategy(strategyOptions, UserModel.authenticate()));
+// --- END FIX ---
+
 // We are using JWT, so session support is not needed
 // passport.serializeUser(UserModel.serializeUser());
 // passport.deserializeUser(UserModel.deserializeUser());
@@ -58,29 +63,42 @@ app.post("/newOrder", async (req, res) => {
 
 // --- NEW AUTHENTICATION ROUTES ---
 
+
 // User Registration (Signup)
 app.post("/register", (req, res) => {
-  // 'register' is a static helper method from passport-local-mongoose
   UserModel.register(
     new UserModel({
       email: req.body.email,
-      username: req.body.email, // We use email as the username
     }),
     req.body.password,
     (err, user) => {
       if (err) {
         console.log(err);
+        
+        // --- THIS IS THE FIX ---
+        // This handles the "User Already Exists" error gracefully
+        if (err.name === "UserExistsError") {
+          return res.status(400).json({ error: "A user with that email already exists." });
+        }
+        // --- END FIX ---
+
+        // Send a generic 500 for any other errors
         return res.status(500).json({ error: err.message });
       }
-      // Log the user in right after registration
-      passport.authenticate("local", { session: false })(req, res, () => {
+
+      // We just created the user, so we know they are valid.
+      // Just sign a token for them directly.
+      try {
         const token = jwt.sign(
           { userId: user._id, email: user.email },
           process.env.JWT_SECRET,
           { expiresIn: "1h" }
         );
         res.json({ success: true, token: token });
-      });
+      } catch (tokenError) {
+        console.error("JWT Signing Error:", tokenError);
+        res.status(500).json({ error: "Failed to sign token." });
+      }
     }
   );
 });
@@ -89,10 +107,12 @@ app.post("/register", (req, res) => {
 app.post("/login", (req, res, next) => {
   passport.authenticate("local", { session: false }, (err, user, info) => {
     if (err) {
-      return next(err);
+      // Handle server errors
+      return res.status(500).json({ success: false, message: err.message });
     }
     if (!user) {
-      // 'info' contains failure message from passport
+      // 'info.message' comes from passport (e.g., "Incorrect username or password.")
+      // We send 401 (Unauthorized) for failed logins
       return res.status(401).json({ success: false, message: info.message });
     }
 
