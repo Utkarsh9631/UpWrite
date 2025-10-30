@@ -23,5 +23,5 @@ yarn-debug.log*
 yarn-error.log*
 
 
-public/media
-public/font-awesome
+/public/media
+/public/font-awesome
