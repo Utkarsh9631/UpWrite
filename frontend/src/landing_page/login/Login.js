@@ -23,9 +23,9 @@ function Login() {
       const data = await response.json();
 
       if (response.ok && data.success) {
-        localStorage.setItem("token", data.token);
-        // You can also save user info if needed
-        // localStorage.setItem("user", JSON.stringify(data.user));
+        // We can't use localStorage, so we pass the token in the URL
+        // to the dashboard app.
+        window.location.href = `http://localhost:3001/auth/callback?token=${data.token}`;
         navigate("/"); // Redirect to home or dashboard
       } else {
         setError(data.message || "Login failed. Please check your credentials.");

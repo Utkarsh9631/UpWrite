@@ -23,8 +23,9 @@ function Signup() {
       const data = await response.json();
 
       if (response.ok && data.success) {
-        // Store the token (e.g., in localStorage)
-        localStorage.setItem("token", data.token);
+        // We can't use localStorage, so we pass the token in the URL
+        // to the dashboard app.
+        window.location.href = `http://localhost:3001/auth/callback?token=${data.token}`;
         // Redirect to a dashboard or home page
         navigate("/"); // Or navigate('/dashboard')
       } else {
