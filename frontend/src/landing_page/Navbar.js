@@ -31,6 +31,12 @@ function Navbar() {
         <div className="collapse navbar-collapse" id="navbarSupportedContent">
           <form class="d-flex" role="search">
             <ul class="navbar-nav mb-lg-0">
+              {/* ADD LOGIN LINK */}
+              <li class="nav-item">
+                <Link class="nav-link active" aria-current="page" to="/login">
+                  Login
+                </Link>
+              </li>
               <li class="nav-item">
                 <Link class="nav-link active" aria-current="page" to="/signup">
                   Signup

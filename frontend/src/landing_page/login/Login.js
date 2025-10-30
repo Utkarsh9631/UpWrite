@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-function Signup() {
+function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -9,10 +9,10 @@ function Signup() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(""); // Clear previous errors
+    setError("");
 
     try {
-      const response = await fetch("http://localhost:3002/register", {
+      const response = await fetch("http://localhost:3002/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -23,15 +23,15 @@ function Signup() {
       const data = await response.json();
 
       if (response.ok && data.success) {
-        // Store the token (e.g., in localStorage)
         localStorage.setItem("token", data.token);
-        // Redirect to a dashboard or home page
-        navigate("/"); // Or navigate('/dashboard')
+        // You can also save user info if needed
+        // localStorage.setItem("user", JSON.stringify(data.user));
+        navigate("/"); // Redirect to home or dashboard
       } else {
-        setError(data.error || "Signup failed. Please try again.");
+        setError(data.message || "Login failed. Please check your credentials.");
       }
     } catch (err) {
-      console.error("Signup error:", err);
+      console.error("Login error:", err);
       setError("An unexpected error occurred. Please try again.");
     }
   };
@@ -40,7 +40,7 @@ function Signup() {
     <div className="container p-5">
       <div className="row justify-content-center">
         <div className="col-md-6">
-          <h2 className="text-center mb-4">Create an account</h2>
+          <h2 className="text-center mb-4">Login</h2>
           <form onSubmit={handleSubmit}>
             <div className="form-group mb-3">
               <label htmlFor="email">Email address</label>
@@ -68,7 +68,7 @@ function Signup() {
             </div>
             {error && <div className="alert alert-danger">{error}</div>}
             <button type="submit" className="btn btn-primary w-100">
-              Sign Up
+              Login
             </button>
           </form>
         </div>
@@ -77,4 +77,4 @@ function Signup() {
   );
 }
 
-export default Signup;
+export default Login;
